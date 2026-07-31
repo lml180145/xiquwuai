@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>和小戏聊天 - 戏曲吾爱</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,sans-serif; }
+    body { background:#0d0d0d; min-height:100vh; display:flex; flex-direction:column; }
+    .navbar { background:#1a0f0a; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+    .navbar a { color:#f5c842; text-decoration:none; font-size:16px; font-weight:600; }
+    .container { max-width:800px; margin:0 auto; padding:20px; width:100%; flex:1; display:flex; flex-direction:column; }
+    .chat-header { text-align:center; padding:20px 0; }
+    .chat-header .avatar { font-size:64px; display:block; }
+    .chat-header h1 { color:#f5e6d3; font-size:26px; margin-top:8px; }
+    .chat-header h1 span { color:#f5c842; }
+    .chat-header p { color:#888; font-size:14px; }
+    .chat-box { flex:1; background:#1a1a1a; border-radius:16px; padding:20px; min-height:400px; max-height:500px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; border:1px solid #333; }
+    .msg { max-width:80%; padding:12px 16px; border-radius:16px; font-size:15px; line-height:1.5; animation:fadeIn 0.3s ease; }
+    .msg.user { align-self:flex-end; background:#8b1a1a; color:white; border-bottom-right-radius:4px; }
+    .msg.ai { align-self:flex-start; background:#2d1810; color:#f5e6d3; border-bottom-left-radius:4px; border:1px solid #4a2518; }
+    .msg .name { font-size:12px; font-weight:600; margin-bottom:4px; opacity:0.7; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .input-area { display:flex; gap:12px; margin-top:16px; }
+    .input-area input { flex:1; padding:14px 18px; border-radius:40px; border:2px solid #333; background:#1a1a1a; color:#f5e6d3; font-size:16px; outline:none; }
+    .input-area input:focus { border-color:#f5c842; }
+    .input-area button { padding:14px 32px; border-radius:40px; border:none; background:#f5c842; color:#1a0f0a; font-size:16px; font-weight:700; cursor:pointer; transition:0.3s; }
+    .input-area button:hover { transform:scale(1.03); background:#ffe066; }
+    .input-area button:disabled { opacity:0.5; cursor:not-allowed; }
+    .quick-questions { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .quick-questions button { background:#2d1810; color:#f5e6d3; border:1px solid #4a2518; padding:8px 16px; border-radius:30px; font-size:13px; cursor:pointer; transition:0.3s; }
+    .quick-questions button:hover { background:#4a2518; }
+    .back-link { color:#f5c842; text-decoration:none; margin-top:16px; display:inline-block; }
+    .typing { color:#888; font-size:14px; padding:8px 16px; align-self:flex-start; }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/">🎭 戏曲吾爱</a>
+  <a href="/">← 返回首页</a>
+</nav>
+<div class="container">
+  <div class="chat-header">
+    <span class="avatar">🎭</span>
+    <h1>和 <span>小戏</span> 聊天</h1>
+    <p>AI戏曲虚拟人物 · 轻松学戏曲知识</p>
+  </div>
+  <div class="chat-box" id="chatBox">
+    <div class="msg ai">
+      <div class="name">🎭 小戏</div>
+      你好呀！我是小戏，一个热爱戏曲的AI虚拟人物~ 🎭<br>
+      有什么戏曲问题想问我吗？生旦净丑、唱腔身段、经典剧目，我都可以聊！
+    </div>
+  </div>
+  <div class="input-area">
+    <input type="text" id="chatInput" placeholder="问小戏一个戏曲问题..." />
+    <button id="sendBtn">发送</button>
+  </div>
+  <div class="quick-questions">
+    <button onclick="askQuick('什么是生旦净丑？')">🎭 生旦净丑</button>
+    <button onclick="askQuick('京剧有哪些唱腔？')">🎵 京剧唱腔</button>
+    <button onclick="askQuick('戏曲妆容有什么特点？')">💄 戏曲妆容</button>
+    <button onclick="askQuick('推荐一部经典剧目')">📖 经典剧目</button>
+  </div>
+  <a href="/" class="back-link">← 返回首页</a>
+</div>
+<script>
+  const chatBox = document.getElementById('chatBox');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  function addMessage(text, sender = 'ai') {
+    const div = document.createElement('div');
+    div.className = `msg ${sender}`;
+    if (sender === 'ai') {
+      div.innerHTML = `<div class="name">🎭 小戏</div>${text}`;
+    } else {
+      div.textContent = text;
+    }
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function addTyping() {
+    const div = document.createElement('div');
+    div.className = 'typing';
+    div.id = 'typingIndicator';
+    div.textContent = '🎭 小戏正在思考...';
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  async function sendMessage(message) {
+    if (!message.trim()) return;
+    addMessage(message, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+    addTyping();
+
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const data = await res.json();
+      removeTyping();
+      if (data.reply) {
+        addMessage(data.reply, 'ai');
+      } else {
+        addMessage('小戏有点累了，换个问题再问我吧~ 🎭', 'ai');
+      }
+    } catch(e) {
+      removeTyping();
+      addMessage('网络有点忙，稍后再试试吧~ 🌸', 'ai');
+    }
+    sendBtn.disabled = false;
+  }
+
+  function askQuick(q) {
+    input.value = q;
+    sendMessage(q);
+  }
+
+  sendBtn.addEventListener('click', () => sendMessage(input.value));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage(input.value);
+  });
+</script>
+</body>
+</html>

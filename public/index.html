@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <title>戏曲吾爱 - 全民戏曲分享平台</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,'PingFang SC','Microsoft YaHei',sans-serif; }
+    body { background:#f5f0eb; min-height:100vh; }
+    
+    .navbar {
+      background: linear-gradient(135deg, #8b1a1a 0%, #5c0e0e 100%);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar .logo {
+      color: #f5e6d3;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .navbar .logo span { color: #f5c842; }
+    .navbar .nav-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .navbar .nav-links a {
+      color: #f5e6d3;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      transition: 0.3s;
+      background: rgba(255,255,255,0.1);
+      cursor: pointer;
+    }
+    .navbar .nav-links a:hover { background: rgba(255,215,0,0.3); }
+    .navbar .user-area {
+      color: #f5e6d3;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .navbar .user-area .btn {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .btn-primary { background:#f5c842; color:#5c0e0e; }
+    .btn-primary:hover { background:#e6b83a; }
+    .btn-outline { background:transparent; color:#f5e6d3; border:1.5px solid #f5e6d3; }
+    .btn-outline:hover { background:rgba(255,255,255,0.2); }
+    .btn-danger { background:#c0392b; color:white; }
+    .btn-danger:hover { background:#e74c3c; }
+
+    .banner {
+      background: linear-gradient(135deg, #2d1810 0%, #4a2518 100%);
+      color: #f5e6d3;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 3px solid #f5c842;
+    }
+    .banner h1 { font-size:28px; margin-bottom:6px; }
+    .banner h1 span { color:#f5c842; }
+    .banner p { font-size:15px; opacity:0.9; }
+
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .category-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: 0.3s;
+      border: 2px solid transparent;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .category-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      border-color: #8b1a1a;
+    }
+    .category-card .icon { font-size: 40px; margin-bottom: 10px; }
+    .category-card h3 { color: #2d1810; font-size: 18px; }
+    .category-card p { color: #888; font-size: 13px; margin-top: 6px; }
+    .category-card .tag {
+      display: inline-block;
+      background: #8b1a1a;
+      color: white;
+      font-size: 11px;
+      padding: 2px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    .video-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+    .video-section .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0d5cc;
+    }
+    .video-section .section-header h2 { color: #2d1810; }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .video-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .video-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+    .video-card .thumb {
+      background: #2d1810;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5e6d3;
+      font-size: 48px;
+      position: relative;
+    }
+    .video-card .thumb .play-icon {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: rgba(255,215,0,0.85);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .video-card .info { padding: 14px; }
+    .video-card .info h4 { color: #2d1810; font-size: 15px; margin-bottom: 4px; }
+    .video-card .info .meta {
+      color: #999;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .video-card .info .category-badge {
+      background: #8b1a1a;
+      color: white;
+      font-size: 11px;
+      padding: 1px 12px;
+      border-radius: 20px;
+    }
+
+    .ai-entry {
+      background: linear-gradient(135deg, #1a0f0a 0%, #3d2018 100%);
+      border-radius: 20px;
+      padding: 30px 40px;
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      border: 2px solid #f5c842;
+    }
+    .ai-entry .text { color: #f5e6d3; }
+    .ai-entry .text h2 { font-size: 24px; }
+    .ai-entry .text h2 span { color: #f5c842; }
+    .ai-entry .text p { opacity:0.8; font-size:14px; margin-top:6px; }
+    .ai-entry .btn-ai {
+      background: #f5c842;
+      color: #1a0f0a;
+      padding: 14px 36px;
+      border-radius: 40px;
+      border: none;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .ai-entry .btn-ai:hover { transform: scale(1.05); background: #ffe066; }
+
+    .footer {
+      background: #1a0f0a;
+      color: #888;
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 13px;
+      border-top: 3px solid #f5c842;
+    }
+    .footer a { color: #f5c842; text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .navbar { flex-direction: column; align-items: stretch; text-align:center; }
+      .navbar .nav-links { justify-content: center; }
+      .navbar .user-area { justify-content: center; }
+      .banner h1 { font-size:22px; }
+      .categories { grid-template-columns: repeat(2, 1fr); padding:12px; }
+      .video-grid { grid-template-columns: 1fr; }
+      .ai-entry { flex-direction: column; text-align:center; padding:20px; }
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">🎭 戏曲<span>吾爱</span></div>
+  <div class="nav-links">
+    <a href="/" class="active">首页</a>
+    <a href="#" onclick="scrollToCategory('有戏我来评')">有戏我来评</a>
+    <a href="#" onclick="scrollToCategory('我眼中的戏曲')">我眼中的戏曲</a>
+    <a href="#" onclick="scrollToCategory('戏曲微课堂')">戏曲微课堂</a>
+    <a href="#" onclick="scrollToCategory('名家传戏')">名家传戏</a>
+  </div>
+  <div class="user-area" id="userArea">
+    <span id="userNameDisplay">👤 游客</span>
+    <button class="btn btn-primary" id="loginBtn" onclick="location.href='/login.html'">登录</button>
+    <button class="btn btn-outline" id="registerBtn" onclick="location.href='/register.html'">注册</button>
+    <button class="btn btn-primary hidden" id="publishBtn" onclick="location.href='/publish.html'">📹 投稿</button>
+    <button class="btn btn-danger hidden" id="logoutBtn">登出</button>
+  </div>
+</nav>
+
+<div class="banner">
+  <h1>🎭 戏<span>曲</span>吾爱 · 全民分享</h1>
+  <p>📢 四大栏目 · 人人可投稿 · AI戏曲小戏陪你聊</p>
+</div>
+
+<div class="categories">
+  <a href="#" class="category-card" onclick="scrollToCategory('有戏我来评')">
+    <div class="icon">🎭</div>
+    <h3>有戏我来评</h3>
+    <p>剧目赏析 · 唱腔点评 · 戏曲热议</p>
+    <span class="tag">投稿热门</span>
+  </a>
+  <a href="#" class="category-card" onclick="scrollToCategory('我眼中的戏曲')">
+    <div class="icon">📖</div>
+    <h3>我眼中的戏曲</h3>
+    <p>个人感悟 · 排练日常 · 生活随想</p>
+    <span class="tag">个性创作</span>
+  </a>
+  <a href="#" class="category-card" onclick="scrollToCategory('戏曲微课堂')">
+    <div class="icon">📚</div>
+    <h3>戏曲微课堂</h3>
+    <p>科普教学 · AI互动 · 趣味学戏</p>
+    <span class="tag">AI加持</span>
+  </a>
+  <a href="#" class="category-card" onclick="scrollToCategory('名家传戏')">
+    <div class="icon">🌟</div>
+    <h3>名家传戏</h3>
+    <p>名家片段 · 经典剧目 · 非遗传承</p>
+    <span class="tag">经典传承</span>
+  </a>
+</div>
+
+<div class="ai-entry">
+  <div class="text">
+    <h2>🤖 和 <span>小戏</span> 聊天学戏曲</h2>
+    <p>AI虚拟戏曲人物 · 随时问答 · 轻松学知识</p>
+  </div>
+  <a href="/ai-chat.html" class="btn-ai">🎤 和小戏聊天</a>
+</div>
+
+<section class="video-section" id="videoSection">
+  <div class="section-header">
+    <h2 id="currentCategoryTitle">📹 最新投稿</h2>
+    <span style="color:#888;font-size:14px;">按发布时间排序</span>
+  </div>
+  <div class="video-grid" id="videoGrid">
+    <div style="text-align:center;padding:40px;color:#999;grid-column:1/-1;">⏳ 加载中...</div>
+  </div>
+</section>
+
+<div class="footer">
+  <p>🎭 戏曲吾爱 · 轻量化戏曲文化传播平台</p>
+  <p style="margin-top:6px;font-size:12px;">免费本地部署 · 全民参与 · 零门槛分享</p>
+</div>
+
+<script>
+  let currentCategory = '';
+  let currentUser = null;
+
+  async function fetchUser() {
+    try {
+      const res = await fetch('/api/me');
+      const data = await res.json();
+      if (data.loggedIn) {
+        currentUser = data.user;
+        document.getElementById('userNameDisplay').textContent = `👤 ${data.user.username}`;
+        document.getElementById('loginBtn').classList.add('hidden');
+        document.getElementById('registerBtn').classList.add('hidden');
+        document.getElementById('publishBtn').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.getElementById('logoutBtn').onclick = async () => {
+          await fetch('/api/logout', { method: 'POST' });
+          location.reload();
+        };
+      } else {
+        document.getElementById('loginBtn').classList.remove('hidden');
+        document.getElementById('registerBtn').classList.remove('hidden');
+        document.getElementById('publishBtn').classList.add('hidden');
+        document.getElementById('logoutBtn').classList.add('hidden');
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  async function loadVideos(category = '') {
+    const url = category ? `/api/videos?category=${encodeURIComponent(category)}&limit=50` : '/api/videos?limit=50';
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      const grid = document.getElementById('videoGrid');
+      if (!data.videos || data.videos.length === 0) {
+        grid.innerHTML = `<div style="text-align:center;padding:40px;color:#999;grid-column:1/-1;">📭 暂无视频，快来投稿吧！</div>`;
+        return;
+      }
+      grid.innerHTML = data.videos.map(v => `
+        <div class="video-card" onclick="location.href='/video.html?id=${v.id}'">
+          <div class="thumb">
+            <span>🎬</span>
+            <div class="play-icon">▶</div>
+          </div>
+          <div class="info">
+            <h4>${v.title}</h4>
+            <div class="meta">
+              <span>👤 ${v.username || '未知'}</span>
+              <span class="category-badge">${v.category}</span>
+            </div>
+            <div class="meta" style="margin-top:4px;">
+              <span>👁️ ${v.views || 0}次</span>
+              <span>${new Date(v.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) {
+      console.error(e);
+      document.getElementById('videoGrid').innerHTML = '<div style="text-align:center;padding:40px;color:#999;grid-column:1/-1;">⚠️ 加载失败，请刷新</div>';
+    }
+  }
+
+  function scrollToCategory(category) {
+    currentCategory = category;
+    document.getElementById('currentCategoryTitle').textContent = `📹 ${category}`;
+    loadVideos(category);
+    document.getElementById('videoSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  fetchUser();
+  loadVideos();
+  setInterval(fetchUser, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>视频播放 - 戏曲吾爱</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,sans-serif; }
+    body { background:#0d0d0d; min-height:100vh; display:flex; flex-direction:column; }
+    .navbar { background:#1a0f0a; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+    .navbar a { color:#f5c842; text-decoration:none; font-size:16px; font-weight:600; }
+    .container { max-width:900px; margin:0 auto; padding:20px; width:100%; flex:1; }
+    .video-wrapper { background:#000; border-radius:16px; overflow:hidden; position:relative; padding-bottom:56.25%; height:0; }
+    .video-wrapper video { position:absolute; top:0; left:0; width:100%; height:100%; }
+    .info { background:#1a1a1a; border-radius:16px; padding:24px; margin-top:16px; }
+    .info h2 { color:#f5e6d3; font-size:22px; margin-bottom:8px; }
+    .info .meta { color:#888; font-size:14px; display:flex; gap:20px; flex-wrap:wrap; margin-bottom:12px; }
+    .info .meta .category-badge { background:#8b1a1a; color:white; padding:2px 14px; border-radius:20px; }
+    .info .description { color:#bbb; font-size:15px; line-height:1.6; }
+    .info .user { color:#f5c842; font-weight:600; margin-top:12px; display:block; }
+    .back-link { color:#f5c842; text-decoration:none; font-weight:600; margin-top:16px; display:inline-block; }
+    .loading { text-align:center; color:#888; padding:60px 20px; font-size:18px; }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/">🎭 戏曲吾爱</a>
+  <a href="/">← 返回首页</a>
+</nav>
+<div class="container" id="app">
+  <div class="loading">⏳ 加载视频...</div>
+</div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const videoId = params.get('id');
+
+  async function loadVideo() {
+    if (!videoId) {
+      document.getElementById('app').innerHTML = '<div class="loading">⚠️ 视频不存在</div>';
+      return;
+    }
+    try {
+      const res = await fetch(`/api/videos/${videoId}`);
+      const data = await res.json();
+      if (!data.video) {
+        document.getElementById('app').innerHTML = '<div class="loading">⚠️ 视频不存在或已删除</div>';
+        return;
+      }
+      const v = data.video;
+      document.getElementById('app').innerHTML = `
+        <div class="video-wrapper">
+          <video controls autoplay>
+            <source src="${v.video_url}" type="video/mp4">
+            您的浏览器不支持视频播放
+          </video>
+        </div>
+        <div class="info">
+          <h2>${v.title}</h2>
+          <div class="meta">
+            <span class="category-badge">${v.category}</span>
+            <span>👤 ${v.username || '未知'}</span>
+            <span>👁️ ${v.views || 0}次浏览</span>
+            <span>📅 ${new Date(v.created_at).toLocaleDateString()}</span>
+          </div>
+          ${v.description ? `<div class="description">${v.description}</div>` : ''}
+          <span class="user">🎭 来自「${v.category}」栏目</span>
+        </div>
+        <a href="/" class="back-link">← 返回首页浏览更多</a>
+      `;
+    } catch(e) {
+      document.getElementById('app').innerHTML = '<div class="loading">⚠️ 加载失败，请刷新</div>';
+    }
+  }
+  loadVideo();
+</script>
+</body>
+</html>

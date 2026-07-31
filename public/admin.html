@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理后台 - 戏曲吾爱</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,sans-serif; }
+    body { background:#0d0d0d; min-height:100vh; padding:20px; }
+    .container { max-width:1200px; margin:0 auto; background:#1a1a1a; border-radius:24px; padding:30px; border:1px solid #333; }
+    h1 { color:#f5c842; font-size:28px; margin-bottom:6px; }
+    .sub { color:#888; font-size:14px; margin-bottom:24px; }
+    .tabs { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+    .tabs button { padding:10px 24px; border:none; border-radius:12px; background:#333; color:#bbb; cursor:pointer; font-size:15px; transition:0.3s; }
+    .tabs button.active { background:#8b1a1a; color:white; }
+    .tabs button:hover { background:#4a2518; color:white; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    table { width:100%; border-collapse:collapse; color:#ddd; font-size:14px; }
+    table th { text-align:left; padding:12px 8px; border-bottom:2px solid #333; color:#f5c842; }
+    table td { padding:10px 8px; border-bottom:1px solid #222; }
+    table .status-badge { padding:2px 12px; border-radius:20px; font-size:12px; }
+    .status-badge.approved { background:#1a7a3a; color:#a0e0b0; }
+    .status-badge.pending { background:#b8860b; color:#f5d98e; }
+    .status-badge.rejected { background:#8b1a1a; color:#f5a0a0; }
+    .btn-sm { padding:4px 14px; border:none; border-radius:8px; cursor:pointer; font-size:12px; transition:0.3s; }
+    .btn-sm.approve { background:#1a7a3a; color:white; }
+    .btn-sm.approve:hover { background:#2aaa5e; }
+    .btn-sm.reject { background:#8b1a1a; color:white; }
+    .btn-sm.reject:hover { background:#c0392b; }
+    .btn-sm.delete { background:#555; color:white; }
+    .btn-sm.delete:hover { background:#777; }
+    .btn-sm.ban { background:#8b1a1a; color:white; }
+    .btn-sm.ban:hover { background:#c0392b; }
+    .back-link { color:#f5c842; text-decoration:none; margin-top:20px; display:inline-block; }
+    .empty { color:#666; text-align:center; padding:40px; }
+    .team-create { background:#2d1810; padding:16px 20px; border-radius:12px; margin-bottom:20px; display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+    .team-create input { padding:10px 16px; border-radius:8px; border:1px solid #444; background:#1a1a1a; color:white; width:120px; }
+    .team-create button { background:#f5c842; color:#1a0f0a; border:none; padding:10px 24px; border-radius:8px; font-weight:700; cursor:pointer; }
+    .team-create button:hover { background:#ffe066; }
+    .result-msg { color:#1a7a3a; margin-top:10px; }
+    #authCheck { padding:20px; text-align:center; }
+    #authCheck.success { color:#1a7a3a; }
+    #authCheck.error { color:#c0392b; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🔐 管理后台</h1>
+  <div class="sub">内容审核 · 用户管理 · 团队账号创建</div>
+  
+  <div id="authCheck" class="error">⚠️ 加载中...</div>
+
+  <div id="adminContent" style="display:none;">
+    <div class="tabs">
+      <button class="active" data-tab="videos">📹 视频审核</button>
+      <button data-tab="users">👤 用户管理</button>
+      <button data-tab="team">👥 创建团队账号</button>
+    </div>
+
+    <div class="panel active" id="panel-videos">
+      <table>
+        <thead><tr><th>标题</th><th>用户</th><th>栏目</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="videoTableBody"><tr><td colspan="5" class="empty">加载中...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="panel-users">
+      <table>
+        <thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead>
+        <tbody id="userTableBody"><tr><td colspan="5" class="empty">加载中...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="panel-team">
+      <div class="team-create">
+        <label style="color:#ddd;">创建数量</label>
+        <input type="number" id="teamCount" value="12" min="1" max="50" />
+        <label style="color:#ddd;">前缀</label>
+        <input type="text" id="teamPrefix" value="team" style="width:100px;" />
+        <button id="createTeamBtn">🚀 批量创建</button>
+      </div>
+      <div id="teamResult" class="result-msg"></div>
+      <div style="color:#888;font-size:13px;margin-top:12px;">
+        💡 创建后账号名为 team01 ~ team12，密码统一为 123456
+      </div>
+    </div>
+  </div>
+  <a href="/" class="back-link">← 返回首页</a>
+</div>
+
+<script>
+  async function checkAdmin() {
+    const authEl = document.getElementById('authCheck');
+    try {
+      const res = await fetch('/api/me');
+      const data = await res.json();
+      if (!data.loggedIn || data.user.role !== 'admin') {
+        authEl.textContent = '⚠️ 请使用管理员账号登录（admin/admin123456）';
+        authEl.className = 'error';
+        document.getElementById('adminContent').style.display = 'none';
+        return;
+      }
+      authEl.textContent = '✅ 已登录管理员: ' + data.user.username;
+      authEl.className = 'success';
+      document.getElementById('adminContent').style.display = 'block';
+      loadVideos();
+      loadUsers();
+    } catch(e) {
+      authEl.textContent = '⚠️ 请先登录';
+      authEl.className = 'error';
+    }
+  }
+
+  async function loadVideos() {
+    try {
+      const res = await fetch('/api/admin/videos');
+      const data = await res.json();
+      const tbody = document.getElementById('videoTableBody');
+      if (!data.videos || data.videos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无视频</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.videos.map(v => `
+        <tr>
+          <td>${v.title}</td>
+          <td>${v.username || '未知'}</td>
+          <td>${v.category}</td>
+          <td><span class="status-badge ${v.status}">${v.status}</span></td>
+          <td>
+            ${v.status === 'pending' ? `
+              <button class="btn-sm approve" onclick="updateVideo(${v.id},'approved')">✔ 通过</button>
+              <button class="btn-sm reject" onclick="updateVideo(${v.id},'rejected')">✘ 驳回</button>
+            ` : ''}
+            <button class="btn-sm delete" onclick="deleteVideo(${v.id})">🗑 删除</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  async function updateVideo(id, status) {
+    if (!confirm(`确定要${status === 'approved' ? '通过' : '驳回'}这个视频吗？`)) return;
+    try {
+      await fetch(`/api/admin/videos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadVideos();
+    } catch(e) { alert('操作失败'); }
+  }
+
+  async function deleteVideo(id) {
+    if (!confirm('确定要删除这个视频吗？')) return;
+    try {
+      await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+      loadVideos();
+    } catch(e) { alert('删除失败'); }
+  }
+
+  async function loadUsers() {
+    try {
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      const tbody = document.getElementById('userTableBody');
+      if (!data.users || data.users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无用户</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.users.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td>${u.username}</td>
+          <td>${u.role}</td>
+          <td>${new Date(u.created_at).toLocaleDateString()}</td>
+          <td>
+            ${u.role !== 'admin' ? `<button class="btn-sm ban" onclick="banUser(${u.id})">🚫 封禁</button>` : '管理员'}
+          </td>
+        </tr>
+      `).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  async function banUser(id) {
+    if (!confirm('确定要封禁这个用户吗？')) return;
+    try {
+      await fetch(`/api/admin/users/${id}/ban`, { method: 'PUT' });
+      loadUsers();
+    } catch(e) { alert('操作失败'); }
+  }
+
+  document.getElementById('createTeamBtn').addEventListener('click', async () => {
+    const count = parseInt(document.getElementById('teamCount').value) || 12;
+    const prefix = document.getElementById('teamPrefix').value.trim() || 'team';
+    try {
+      const res = await fetch('/api/create-team-accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count, prefix })
+      });
+      const data = await res.json();
+      document.getElementById('teamResult').textContent = `✅ 成功创建 ${data.count} 个账号: ${data.created.join(', ')} (密码: 123456)`;
+    } catch(e) {
+      document.getElementById('teamResult').textContent = '❌ 创建失败，请重试';
+    }
+  });
+
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  checkAdmin();
+</script>
+</body>
+</html>
