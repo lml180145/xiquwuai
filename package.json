@@ -4,8 +4,7 @@
   "description": "戏曲吾爱 - 轻量化戏曲文化传播平台",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "vercel-build": "npm install"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -18,10 +17,7 @@
     "multer": "^1.4.5-lts.1",
     "axios": "^1.6.0"
   },
-  "devDependencies": {
-    "@vercel/node": "^3.0.0"
-  },
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   }
 }
