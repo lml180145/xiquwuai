@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');  // ← 改成 bcryptjs
 require('dotenv').config();
 
 const pool = new Pool({
@@ -55,7 +56,6 @@ async function initDB() {
       )
     `);
 
-    const bcrypt = require('bcrypt');
     const adminHashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123456', 10);
     await client.query(
       `INSERT INTO users (username, password, role) VALUES ($1, $2, 'admin') ON CONFLICT (username) DO UPDATE SET role='admin'`,

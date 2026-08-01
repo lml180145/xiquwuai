@@ -1,6 +1,6 @@
 const express = require('express');
 const session = require('express-session');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');  // ← 改成 bcryptjs
 const pool = require('./database');
 const path = require('path');
 const cors = require('cors');
@@ -186,7 +186,6 @@ app.post('/api/ai/chat', async (req, res) => {
     const charResult = await pool.query('SELECT * FROM ai_character WHERE id = $1', [characterId]);
     const character = charResult.rows[0] || { system_prompt: '你是戏曲文化科普助手' };
 
-    // 调用DeepSeek API
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
